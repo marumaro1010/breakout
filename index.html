@@ -128,6 +128,105 @@
       border-radius:10px; cursor:pointer; font-weight:800;
     }
     .clear-btn:hover{ background:#ee5a5a; }
+
+    /* ===== RWD 響應式設計 ===== */
+    /* 手機觸控控制按鈕 */
+    .touch-controls{
+      display:none;
+      justify-content:center;
+      gap:12px;
+      padding:12px;
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      backdrop-filter:blur(8px);
+      box-shadow:0 12px 30px rgba(30,80,160,0.10);
+    }
+    .touch-btn{
+      width:80px; height:60px;
+      font-size:28px;
+      border-radius:16px;
+      border:2px solid rgba(42,108,255,0.3);
+      background:linear-gradient(180deg,#fff,#f0f6ff);
+      color:#234;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      user-select:none;
+      -webkit-user-select:none;
+      touch-action:manipulation;
+      box-shadow:0 4px 15px rgba(30,80,160,0.15);
+    }
+    .touch-btn:active{
+      transform:scale(0.95);
+      background:linear-gradient(180deg,#e8f1ff,#d8e8ff);
+    }
+    .touch-btn.primary{
+      background:linear-gradient(180deg, #3a7bff, var(--primary));
+      border:none;
+      color:white;
+    }
+
+    /* 手機版樣式 */
+    @media (max-width: 768px) {
+      body{ padding:8px; min-height:auto; }
+      .wrap{ width:100%; gap:8px; }
+      .bar{
+        padding:8px;
+        gap:6px;
+        justify-content:center;
+      }
+      .bar button, .bar select{
+        padding:8px 10px;
+        font-size:13px;
+      }
+      .hint{ display:none; } /* 隱藏鍵盤提示 */
+      .stat{
+        margin-left:0;
+        width:100%;
+        justify-content:center;
+      }
+      .pill{
+        padding:5px 8px;
+        font-size:12px;
+      }
+      canvas{
+        border-radius:12px;
+        touch-action:none; /* 防止觸控滾動 */
+      }
+      .touch-controls{
+        display:flex; /* 手機版顯示觸控按鈕 */
+      }
+      .modal{
+        padding:16px 20px;
+        max-width:95%;
+      }
+      .modal h2{ font-size:20px; }
+      .leaderboard-table th,
+      .leaderboard-table td{
+        padding:8px 4px;
+        font-size:13px;
+      }
+    }
+
+    /* 更小螢幕 */
+    @media (max-width: 480px) {
+      .bar{
+        flex-direction:column;
+        align-items:stretch;
+      }
+      .bar > *{
+        text-align:center;
+      }
+      .stat{
+        gap:6px;
+      }
+      .touch-btn{
+        width:70px;
+        height:55px;
+        font-size:24px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -152,6 +251,13 @@
   </div>
 
   <canvas id="game" width="900" height="560"></canvas>
+
+  <!-- 手機觸控控制 -->
+  <div class="touch-controls" id="touchControls">
+    <button class="touch-btn" id="touchLeft">⬅️</button>
+    <button class="touch-btn primary" id="touchStart">▶️</button>
+    <button class="touch-btn" id="touchRight">➡️</button>
+  </div>
 </div>
 
 <!-- 龍虎排行榜彈窗 -->
@@ -182,6 +288,11 @@
   const $ = (id) => document.getElementById(id);
   const canvas = $("game");
   const ctx = canvas.getContext("2d", { alpha: false }); // 關閉 alpha 提升效能
+
+  // 觸控按鈕
+  const touchLeft = $("touchLeft");
+  const touchRight = $("touchRight");
+  const touchStart = $("touchStart");
 
   const startBtn = $("startBtn");
   const resetBtn = $("resetBtn");
@@ -216,10 +327,10 @@
     BONE_CATCH_SCORE: 100,
     BONE_HEAL_CHANCE: 0.35,
     // 物理參數
-    PADDLE_WIDTH: 150,
-    PADDLE_HEIGHT: 14,
+    PADDLE_WIDTH: 180,
+    PADDLE_HEIGHT: 22,
     PADDLE_SPEED: 9,
-    BALL_RADIUS: 8,
+    BALL_RADIUS: 16,
     BALL_MAX_VX: 9.5,
 
     // 畫布邊界
@@ -236,6 +347,17 @@
     { name: "Extra：洗澡小哥", src: "005.png" },
   ]);
   maxText.textContent = levels.length;
+
+  // ===== 球與板子圖片 =====
+  const ballImg = new Image();
+  ballImg.src = "ball.png";
+  let ballImgLoaded = false;
+  ballImg.onload = () => { ballImgLoaded = true; };
+
+  const paddleImg = new Image();
+  paddleImg.src = "board.png";
+  let paddleImgLoaded = false;
+  paddleImg.onload = () => { paddleImgLoaded = true; };
 
   // ===== 遊戲狀態 =====
   const state = {
@@ -683,14 +805,23 @@
     }
 
     // 板子
-    ctx.fillStyle = "rgba(35,70,140,0.90)";
-    ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+    if (paddleImgLoaded) {
+      ctx.drawImage(paddleImg, paddle.x, paddle.y, paddle.w, paddle.h);
+    } else {
+      ctx.fillStyle = "rgba(35,70,140,0.90)";
+      ctx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+    }
 
     // 球
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.r, 0, TWO_PI);
-    ctx.fillStyle = "rgba(30,60,120,0.95)";
-    ctx.fill();
+    if (ballImgLoaded) {
+      const ballSize = ball.r * 2;
+      ctx.drawImage(ballImg, ball.x - ball.r, ball.y - ball.r, ballSize, ballSize);
+    } else {
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.r, 0, TWO_PI);
+      ctx.fillStyle = "rgba(30,60,120,0.95)";
+      ctx.fill();
+    }
 
     // 暫停/開始畫面
     if (!state.running || state.paused) {
@@ -735,9 +866,58 @@
   window.addEventListener("keydown", handleKeyDown);
   window.addEventListener("keyup", handleKeyUp);
   canvas.addEventListener("mousemove", (e) => setPaddleByClientX(e.clientX));
+
+  // 觸控滑動控制（手機版）
   canvas.addEventListener("touchmove", (e) => {
+    e.preventDefault(); // 防止滾動
     if (e.touches?.[0]) setPaddleByClientX(e.touches[0].clientX);
+  }, { passive: false });
+
+  canvas.addEventListener("touchstart", (e) => {
+    if (!state.running) start();
   }, { passive: true });
+
+  // 觸控按鈕事件（長按持續移動）
+  let touchInterval = null;
+
+  function startTouchMove(direction) {
+    if (direction === 'left') input.left = true;
+    else if (direction === 'right') input.right = true;
+  }
+
+  function stopTouchMove() {
+    input.left = false;
+    input.right = false;
+    if (touchInterval) {
+      clearInterval(touchInterval);
+      touchInterval = null;
+    }
+  }
+
+  // 左按鈕
+  touchLeft.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startTouchMove('left');
+  }, { passive: false });
+  touchLeft.addEventListener('touchend', stopTouchMove);
+  touchLeft.addEventListener('touchcancel', stopTouchMove);
+
+  // 右按鈕
+  touchRight.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startTouchMove('right');
+  }, { passive: false });
+  touchRight.addEventListener('touchend', stopTouchMove);
+  touchRight.addEventListener('touchcancel', stopTouchMove);
+
+  // 開始按鈕
+  touchStart.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    start();
+  }, { passive: false });
+
+  // 防止雙擊縮放
+  document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false });
 
   startBtn.addEventListener("click", start);
   resetBtn.addEventListener("click", resetAll);
