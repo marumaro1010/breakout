@@ -43,11 +43,11 @@
       cursor:pointer;
     }
     button.primary{
-      background:linear-gradient(180deg, #3a7bff, var(--primary));
-      border:none;
-      color:white;
+      background:transparent;
+      border:2px solid var(--primary);
+      color:var(--primary);
       font-weight:900;
-      box-shadow: 0 10px 22px rgba(42,108,255,0.25);
+      box-shadow:none;
     }
     button:active{ transform: translateY(1px); }
     .hint{
@@ -156,6 +156,12 @@
       -webkit-user-select:none;
       touch-action:manipulation;
       box-shadow:0 4px 15px rgba(30,80,160,0.15);
+      padding:8px;
+    }
+    .touch-btn img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
     }
     .touch-btn:active{
       transform:scale(0.95);
@@ -169,33 +175,58 @@
 
     /* 手機版樣式 */
     @media (max-width: 768px) {
-      body{ padding:8px; min-height:auto; }
-      .wrap{ width:100%; gap:8px; }
-      .bar{
+      body{
         padding:8px;
-        gap:6px;
+        min-height:100vh;
+        min-height:100dvh; /* 動態視窗高度 */
+        overflow-x:hidden;
+      }
+      .wrap{
+        width:100%;
+        gap:8px;
+        max-width:100vw;
+        margin:0 auto;
+      }
+      .bar{
+        padding:6px 8px;
+        gap:5px;
         justify-content:center;
+        flex-wrap:wrap; /* 允許換行 */
+        align-items:center;
       }
       .bar button, .bar select{
-        padding:8px 10px;
-        font-size:13px;
+        padding:6px 10px;
+        font-size:12px;
+        flex-shrink:0;
       }
       .hint{ display:none; } /* 隱藏鍵盤提示 */
       .stat{
         margin-left:0;
-        width:100%;
+        gap:5px;
         justify-content:center;
+        width:100%;
       }
       .pill{
-        padding:5px 8px;
-        font-size:12px;
+        padding:4px 8px;
+        font-size:11px;
+        white-space:nowrap;
       }
       canvas{
         border-radius:12px;
         touch-action:none; /* 防止觸控滾動 */
+        max-width:100%;
       }
       .touch-controls{
         display:flex; /* 手機版顯示觸控按鈕 */
+        padding:8px;
+        gap:10px;
+        justify-content:center;
+      }
+      .touch-btn{
+        width:65px;
+        height:50px;
+        padding:6px;
+        border-radius:12px;
       }
       .modal{
         padding:16px 20px;
@@ -212,19 +243,28 @@
     /* 更小螢幕 */
     @media (max-width: 480px) {
       .bar{
-        flex-direction:column;
-        align-items:stretch;
+        flex-wrap:wrap;
+        justify-content:center;
+        gap:4px;
       }
-      .bar > *{
-        text-align:center;
+      .bar button, .bar select{
+        padding:5px 8px;
+        font-size:11px;
       }
       .stat{
-        gap:6px;
+        gap:4px;
+        width:100%;
+        justify-content:center;
+      }
+      .pill{
+        padding:3px 6px;
+        font-size:10px;
       }
       .touch-btn{
-        width:70px;
-        height:55px;
-        font-size:24px;
+        width:55px;
+        height:40px;
+        font-size:20px;
+        padding:5px;
       }
     }
   </style>
@@ -254,9 +294,9 @@
 
   <!-- 手機觸控控制 -->
   <div class="touch-controls" id="touchControls">
-    <button class="touch-btn" id="touchLeft">⬅️</button>
-    <button class="touch-btn primary" id="touchStart">▶️</button>
-    <button class="touch-btn" id="touchRight">➡️</button>
+    <button class="touch-btn" id="touchLeft"><img src="left.png" alt="左"></button>
+    <button class="touch-btn primary" id="touchStart"><img src="start.png" alt="開始"></button>
+    <button class="touch-btn" id="touchRight"><img src="right.png" alt="右"></button>
   </div>
 </div>
 
