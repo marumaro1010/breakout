@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>工人打磚塊</title>
+  <title>快樂打磚塊</title>
   <style>
     :root{
       --bg1:#f7fbff;
@@ -19,8 +19,13 @@
       font-family: system-ui, -apple-system, "Noto Sans TC", "PingFang TC", sans-serif;
       background: linear-gradient(180deg, #e6f0ff, #d8e8ff);
       color:var(--text);
-      display:flex; justify-content:center; align-items:center; min-height:100vh;
-            background-image: url("lingorm.png");
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-start;
+      align-items:center;
+      min-height:100vh;
+      padding-top:20px;
+      background-image: url("images/lingorm.png");
     }
     .wrap{
       width:min(1020px, 96vw); display:grid; gap:12px;
@@ -32,6 +37,26 @@
       padding:10px 12px; border-radius:14px;
       backdrop-filter: blur(8px);
       box-shadow: 0 12px 30px rgba(30,80,160,0.10);
+      justify-content:center;
+      flex-direction:column;
+    }
+    .bar-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+    }
+    .logo{
+      text-align:center;
+      margin-bottom:15px;
+    }
+    .logo img{
+      height:70px;
+      width:auto;
+      max-width:90%;
+      object-fit:contain;
     }
     button, select{
       font-size:15px;
@@ -181,6 +206,10 @@
         min-height:100dvh; /* 動態視窗高度 */
         overflow-x:hidden;
       }
+      .logo{
+        height:50px;
+        margin:0 auto 8px auto;
+      }
       .wrap{
         width:100%;
         gap:8px;
@@ -270,23 +299,28 @@
   </style>
 </head>
 <body>
+<div  class="logo">
+  <img src="images/logo.png" alt="Logo">
+</div>
 <div class="wrap">
   <div class="bar">
-    <button class="primary" id="startBtn">Start</button>
-    <button id="resetBtn">Reset</button>
-    <button id="rankBtn">🏆 排行榜</button>
+    <div class="bar-row">
+      <button class="primary" id="startBtn">Start</button>
+      <button id="resetBtn">Reset</button>
+      <button id="rankBtn">🏆 排行榜</button>
 
-    <label class="hint">
-      選關卡：
-      <select id="levelSelect"></select>
-    </label>
+      <label class="hint">
+        選關卡：
+        <select id="levelSelect"></select>
+      </label>
 
-    <span class="hint">控制：滑鼠移動 / <span class="kbd">←</span> <span class="kbd">→</span> / 空白鍵 Start</span>
+      <span class="hint">控制：滑鼠移動 / <span class="kbd">←</span> <span class="kbd">→</span> / 空白鍵 Start</span>
 
-    <div class="stat">
-      <div class="pill">關卡：<span id="levelText">1</span>/<span id="maxText">4</span></div>
-      <div class="pill">分數：<span id="scoreText">0</span></div>
-      <div class="pill">生命：<span id="livesText">5</span></div>
+      <div class="stat">
+        <div class="pill">關卡：<span id="levelText">1</span>/<span id="maxText">4</span></div>
+        <div class="pill">分數：<span id="scoreText">0</span></div>
+        <div class="pill">生命：<span id="livesText">5</span></div>
+      </div>
     </div>
   </div>
 
@@ -294,9 +328,9 @@
 
   <!-- 手機觸控控制 -->
   <div class="touch-controls" id="touchControls">
-    <button class="touch-btn" id="touchLeft"><img src="left.png" alt="左"></button>
-    <button class="touch-btn primary" id="touchStart"><img src="start.png" alt="開始"></button>
-    <button class="touch-btn" id="touchRight"><img src="right.png" alt="右"></button>
+    <button class="touch-btn" id="touchLeft"><img src="images/left.png" alt="左"></button>
+    <button class="touch-btn primary" id="touchStart"><img src="images/start.png" alt="開始"></button>
+    <button class="touch-btn" id="touchRight"><img src="images/right.png" alt="右"></button>
   </div>
 </div>
 
@@ -380,22 +414,22 @@
 
   // ===== 關卡圖片 =====
   const levels = Object.freeze([
-    { name: "第1關：小新郎", src: "001.png" },
-    { name: "第2關：足球少年", src: "002.png" },
-    { name: "第3關：文青少年",   src: "003.png" },
-    { name: "第4關：睡覺小童", src: "004.png" },
-    { name: "Extra：洗澡小哥", src: "005.png" },
+    { name: "第1關：小新郎", src: "images/001.png" },
+    { name: "第2關：足球少年", src: "images/002.png" },
+    { name: "第3關：文青少年",   src: "images/003.png" },
+    { name: "第4關：睡覺小童", src: "images/004.png" },
+    { name: "Extra：洗澡小哥", src: "images/005.png" },
   ]);
   maxText.textContent = levels.length;
 
   // ===== 球與板子圖片 =====
   const ballImg = new Image();
-  ballImg.src = "ball.png";
+  ballImg.src = "images/ball.png";
   let ballImgLoaded = false;
   ballImg.onload = () => { ballImgLoaded = true; };
 
   const paddleImg = new Image();
-  paddleImg.src = "board.png";
+  paddleImg.src = "images/board.png";
   let paddleImgLoaded = false;
   paddleImg.onload = () => { paddleImgLoaded = true; };
 
