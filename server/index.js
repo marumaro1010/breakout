@@ -10,21 +10,64 @@ const PORT = process.env.PORT || 3000;
 app.use(cors()); // 允許跨域請求
 app.use(express.json()); // 解析 JSON 請求
 
-// MySQL 連線池設定
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'game_leaderboard',
+// 資料庫連線設定（支援 Railway 的環境變數名稱）
+const dbConfig = {
+  host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || process.env.MYSQLPORT || '3306'),
+  user: process.env.DB_USER || process.env.MYSQLUSER || 'root',
+  password: process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '',
+  database: process.env.DB_NAME || process.env.MYSQLDATABASE || 'game_leaderboard',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
   timezone: '+08:00'
+};
+
+// 顯示連線設定（隱藏密碼）
+console.log('📦 資料庫連線設定:', {
+  host: dbConfig.host,
+  port: dbConfig.port,
+  user: dbConfig.user,
+  database: dbConfig.database
 });
+
+let pool = null;
+
+// 建立連線池（帶重試機制）
+async function createPool(retries = 5, delay = 3000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      console.log(`🔄 嘗試連線資料庫... (${i + 1}/${retries})`);
+      pool = mysql.createPool(dbConfig);
+
+      // 測試連線
+      const connection = await pool.getConnection();
+      connection.release();
+      console.log('✅ 資料庫連線成功');
+      return true;
+    } catch (error) {
+      console.error(`❌ 連線失敗: ${error.message}`);
+      if (i < retries - 1) {
+        console.log(`⏳ ${delay/1000} 秒後重試...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  return false;
+}
 
 // 初始化資料庫表格
 async function initDatabase() {
+  // 先建立連線
+  const connected = await createPool();
+  if (!connected) {
+    console.error('❌ 無法連線到資料庫，請確認：');
+    console.log('1. MySQL 服務是否已啟動');
+    console.log('2. 環境變數是否正確設定');
+    console.log('3. Railway 的 MySQL 是否已準備就緒');
+    process.exit(1);
+  }
+
   try {
     const connection = await pool.getConnection();
 
@@ -44,10 +87,6 @@ async function initDatabase() {
     console.log('✅ 資料庫表格初始化完成');
   } catch (error) {
     console.error('❌ 資料庫初始化失敗:', error.message);
-    console.log('請確認：');
-    console.log('1. MySQL 服務是否已啟動');
-    console.log('2. .env 檔案的資料庫設定是否正確');
-    console.log('3. 資料庫是否已建立（需先執行 CREATE DATABASE game_leaderboard）');
     process.exit(1);
   }
 }
