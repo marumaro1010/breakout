@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # MySQL 資料庫
+  mysql:
+    image: mysql:8.0
+    container_name: game-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-game_leaderboard}
+      MYSQL_USER: ${DB_USER:-gameuser}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-gamepassword}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - game-network
+
+  # Node.js API 伺服器
+  api:
+    build: .
+    container_name: game-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=${DB_NAME:-game_leaderboard}
+      - DB_USER=${DB_USER:-gameuser}
+      - DB_PASSWORD=${DB_PASSWORD:-gamepassword}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - game-network
+
+  # phpMyAdmin（可選，方便管理資料庫）
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: game-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_HOST=mysql
+      - PMA_USER=${DB_USER:-gameuser}
+      - PMA_PASSWORD=${DB_PASSWORD:-gamepassword}
+    depends_on:
+      - mysql
+    networks:
+      - game-network
+
+volumes:
+  mysql_data:
+
+networks:
+  game-network:
+    driver: bridge

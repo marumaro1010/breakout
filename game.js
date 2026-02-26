@@ -639,11 +639,31 @@
   startBtn.addEventListener("click", start);
   resetBtn.addEventListener("click", resetAll);
 
-  // ===== 龍虎排行榜功能 =====
+  // ===== 龍虎排行榜功能（API 版本）=====
+  // API 伺服器網址（開發環境用 localhost，正式環境改成你的伺服器網址）
+  const API_BASE = 'http://localhost:3000/api';
+
+  // 備用：本地儲存（當 API 無法連線時使用）
   const RANK_KEY = "brickBreaker_leaderboard";
   const MAX_RANKS = 10;
 
-  function getLeaderboard() {
+  // 從 API 取得排行榜
+  async function fetchLeaderboard() {
+    try {
+      const response = await fetch(`${API_BASE}/leaderboard?limit=${MAX_RANKS}`);
+      const result = await response.json();
+      if (result.success) {
+        return result.data;
+      }
+    } catch (error) {
+      console.warn('API 連線失敗，使用本地資料:', error);
+    }
+    // API 失敗時，回退到本地儲存
+    return getLocalLeaderboard();
+  }
+
+  // 本地儲存備援
+  function getLocalLeaderboard() {
     try {
       return JSON.parse(localStorage.getItem(RANK_KEY)) || [];
     } catch {
@@ -651,19 +671,64 @@
     }
   }
 
-  function saveLeaderboard(data) {
+  function saveLocalLeaderboard(data) {
     localStorage.setItem(RANK_KEY, JSON.stringify(data));
   }
 
-  function addScore(name, score, level) {
-    const board = getLeaderboard();
-    board.push({ name, score, level, date: Date.now() });
+  // 新增分數到 API
+  async function addScore(name, score, level) {
+    try {
+      const response = await fetch(`${API_BASE}/leaderboard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, score, level })
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert(`🎉 你的排名是第 ${result.data.rank} 名！`);
+        return;
+      }
+    } catch (error) {
+      console.warn('API 連線失敗，儲存到本地:', error);
+    }
+    // API 失敗時，儲存到本地
+    const board = getLocalLeaderboard();
+    board.push({ name, score, level, created_at: new Date().toISOString() });
     board.sort((a, b) => b.score - a.score);
-    saveLeaderboard(board.slice(0, MAX_RANKS));
+    saveLocalLeaderboard(board.slice(0, MAX_RANKS));
   }
 
-  function renderLeaderboard() {
-    const board = getLeaderboard();
+  // 清除排行榜
+  async function clearLeaderboard() {
+    const password = prompt('請輸入管理員密碼：');
+    if (!password) return;
+
+    try {
+      const response = await fetch(`${API_BASE}/leaderboard`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert('排行榜已清除');
+        renderLeaderboard();
+        return;
+      } else {
+        alert(result.error || '清除失敗');
+      }
+    } catch (error) {
+      console.warn('API 連線失敗:', error);
+      // 本地清除
+      localStorage.removeItem(RANK_KEY);
+      renderLeaderboard();
+    }
+  }
+
+  async function renderLeaderboard() {
+    rankBody.innerHTML = '<tr><td colspan="4" class="no-record">載入中...</td></tr>';
+
+    const board = await fetchLeaderboard();
     if (board.length === 0) {
       rankBody.innerHTML = '<tr><td colspan="4" class="no-record">尚無記錄，快來挑戰！</td></tr>';
       return;
@@ -703,8 +768,7 @@
   });
   clearRankBtn.addEventListener('click', () => {
     if (confirm('確定要清除所有排行榜記錄嗎？')) {
-      localStorage.removeItem(RANK_KEY);
-      renderLeaderboard();
+      clearLeaderboard();
     }
   });
 
