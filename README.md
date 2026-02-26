@@ -1,5 +1,16 @@
 # 打磚塊遊戲 - 排行榜 API 伺服器
 
+## 🎮 開啟遊戲
+
+### 本地開發
+```bash
+# 在專案根目錄執行
+python3 -m http.server 5500
+```
+然後開啟瀏覽器前往：**http://localhost:5500**
+
+---
+
 ## 快速開始
 
 ### 1. 安裝依賴
@@ -69,20 +80,6 @@ Content-Type: application/json
   "password": "admin123"
 }
 ```
-
-## 部署選項
-
-### Render.com（免費）
-1. 將 server 資料夾推送到 GitHub
-2. 在 Render 建立新的 Web Service
-3. 連結 GitHub repo
-4. 設定 Build Command: `npm install`
-5. 設定 Start Command: `npm start`
-
-### Railway.app
-1. 連結 GitHub repo
-2. 自動偵測 Node.js 專案
-3. 自動部署
 
 ## 注意事項
 - 預設使用 SQLite，資料儲存在 `leaderboard.db`
