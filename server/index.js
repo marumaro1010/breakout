@@ -153,24 +153,6 @@ app.post('/api/leaderboard', async (req, res) => {
   }
 });
 
-// 清除排行榜（需要密碼保護）
-app.delete('/api/leaderboard', async (req, res) => {
-  try {
-    const { password } = req.body;
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-
-    if (password !== adminPassword) {
-      return res.status(403).json({ success: false, error: '密碼錯誤' });
-    }
-
-    await pool.execute('DELETE FROM leaderboard');
-    res.json({ success: true, message: '排行榜已清除' });
-  } catch (error) {
-    console.error('清除排行榜錯誤:', error);
-    res.status(500).json({ success: false, error: '伺服器錯誤' });
-  }
-});
-
 // 健康檢查
 app.get('/api/health', async (req, res) => {
   try {
@@ -190,7 +172,6 @@ async function start() {
     console.log(`📊 API 端點:`);
     console.log(`   GET  /api/leaderboard - 取得排行榜`);
     console.log(`   POST /api/leaderboard - 新增分數`);
-    console.log(`   DELETE /api/leaderboard - 清除排行榜`);
     console.log(`   GET  /api/health - 健康檢查`);
   });
 }

@@ -757,33 +757,6 @@
     saveLocalLeaderboard(board.slice(0, MAX_RANKS));
   }
 
-  // 清除排行榜
-  async function clearLeaderboard() {
-    const password = prompt('請輸入管理員密碼：');
-    if (!password) return;
-
-    try {
-      const response = await fetch(`${API_BASE}/leaderboard`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
-      });
-      const result = await response.json();
-      if (result.success) {
-        alert('排行榜已清除');
-        renderLeaderboard();
-        return;
-      } else {
-        alert(result.error || '清除失敗');
-      }
-    } catch (error) {
-      console.warn('API 連線失敗:', error);
-      // 本地清除
-      localStorage.removeItem(RANK_KEY);
-      renderLeaderboard();
-    }
-  }
-
   async function renderLeaderboard() {
     rankBody.innerHTML = '<tr><td colspan="4" class="no-record">載入中...</td></tr>';
 
@@ -824,11 +797,6 @@
   closeRankBtn.addEventListener('click', hideRankModal);
   rankModal.addEventListener('click', (e) => {
     if (e.target === rankModal) hideRankModal();
-  });
-  clearRankBtn.addEventListener('click', () => {
-    if (confirm('確定要清除所有排行榜記錄嗎？')) {
-      clearLeaderboard();
-    }
   });
 
   // 關卡選單
