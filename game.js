@@ -38,11 +38,15 @@
     BRICK_GAP: 6,           // 磚塊間距
     BRICK_AREA_SCALE: 0.7,  // 磚塊區域縮放（0.7=留白30%, 1.0=不留白）
 
-    // 骨頭掉落
-    BONE_DROP_CHANCE: 0.01,
-    BONE_FALL_SPEED: 2.8,
-    BONE_CATCH_SCORE: 100,
-    BONE_HEAL_CHANCE: 0.35,
+    // 天使掉落
+    ANGEL_DROP_CHANCE: 0.01,
+    ANGEL_FALL_SPEED: 2.8,
+    ANGEL_CATCH_SCORE: 100,
+    ANGEL_HEAL_CHANCE: 0.35,
+    // 惡魔掉落
+    BOMB_DROP_CHANCE: 0.05,
+    BOMB_FALL_SPEED: 3.0,
+    BOMB_PENALTY: 100,
     // 物理參數
     PADDLE_WIDTH: 180,
     PADDLE_HEIGHT: 22,
@@ -72,9 +76,21 @@
   ballImg.onload = () => { ballImgLoaded = true; };
 
   const paddleImg = new Image();
-  paddleImg.src = "images/board.png";
+  paddleImg.src = "images/board1.png";
   let paddleImgLoaded = false;
   paddleImg.onload = () => { paddleImgLoaded = true; };
+
+  // ===== 天使圖片 =====
+  const angelImg = new Image();
+  angelImg.src = "images/angel.png";
+  let angelImgLoaded = false;
+  angelImg.onload = () => { angelImgLoaded = true; };
+
+  // ===== 惡魔圖片 =====
+  const bombImg = new Image();
+  bombImg.src = "images/bomb.png";
+  let bombImgLoaded = false;
+  bombImg.onload = () => { bombImgLoaded = true; };
 
   // ===== 遊戲狀態 =====
   const state = {
@@ -419,12 +435,21 @@
         updateHUD();
         invalidateBrickInCache(b);
 
-        // 掉骨頭
-        if (random() < CONFIG.BONE_DROP_CHANCE) {
+        // 掉骨頭或炸彈
+        const dropRoll = random();
+        if (dropRoll < CONFIG.BOMB_DROP_CHANCE) {
           drops.push({
             x: b.x + b.w / 2,
             y: b.y + b.h / 2,
-            vy: CONFIG.BONE_FALL_SPEED,
+            vy: CONFIG.BOMB_FALL_SPEED,
+            type: 'bomb'
+          });
+        } else if (dropRoll < CONFIG.ANGEL_DROP_CHANCE + CONFIG.BOMB_DROP_CHANCE) {
+          drops.push({
+            x: b.x + b.w / 2,
+            y: b.y + b.h / 2,
+            vy: CONFIG.ANGEL_FALL_SPEED,
+            type: 'angel'
           });
         }
 
@@ -438,11 +463,15 @@
       const d = drops[i];
       d.y += d.vy;
 
-      // 接到骨頭
+      // 接到掉落物
       if (d.y >= paddle.y && d.x >= paddle.x && d.x <= paddle.x + paddle.w) {
-        state.score += CONFIG.BONE_CATCH_SCORE;
-        if (random() < CONFIG.BONE_HEAL_CHANCE && state.lives < CONFIG.MAX_LIVES) {
-          state.lives++;
+        if (d.type === 'bomb') {
+          state.score = Math.max(0, state.score - CONFIG.BOMB_PENALTY);
+        } else {
+          state.score += CONFIG.ANGEL_CATCH_SCORE;
+          if (random() < CONFIG.ANGEL_HEAL_CHANCE && state.lives < CONFIG.MAX_LIVES) {
+            state.lives++;
+          }
         }
         updateHUD();
         drops.splice(i, 1);
@@ -494,7 +523,7 @@
     ctx.fillStyle = "rgba(20,40,80,0.85)";
     ctx.font = "800 18px system-ui, -apple-system, 'Noto Sans TC', sans-serif";
     ctx.fillText(
-      `${levels[state.levelIndex].name}（每塊 +${CONFIG.HIT_SCORE}）｜接🦴 +${CONFIG.BONE_CATCH_SCORE}（可能 +1命）`,
+      `${levels[state.levelIndex].name}（每塊 +${CONFIG.HIT_SCORE}）｜天使 +${CONFIG.ANGEL_CATCH_SCORE}｜炸彈 -${CONFIG.BOMB_PENALTY}`,
       18, 34
     );
 
@@ -513,12 +542,29 @@
 
     // 掉落物
     if (drops.length > 0) {
-      ctx.font = "22px serif";
-      ctx.textAlign = "center";
+      const dropSize = 35;
       for (let i = 0, len = drops.length; i < len; i++) {
-        ctx.fillText("🦴", drops[i].x, drops[i].y);
+        const d = drops[i];
+        if (d.type === 'bomb') {
+          if (bombImgLoaded) {
+            ctx.drawImage(bombImg, d.x - dropSize / 2, d.y - dropSize / 2, dropSize, dropSize);
+          } else {
+            ctx.font = "22px serif";
+            ctx.textAlign = "center";
+            ctx.fillText("💣", d.x, d.y);
+            ctx.textAlign = "left";
+          }
+        } else {
+          if (angelImgLoaded) {
+            ctx.drawImage(angelImg, d.x - dropSize / 2, d.y - dropSize / 2, dropSize, dropSize);
+          } else {
+            ctx.font = "22px serif";
+            ctx.textAlign = "center";
+            ctx.fillText("🦴", d.x, d.y);
+            ctx.textAlign = "left";
+          }
+        }
       }
-      ctx.textAlign = "left";
     }
 
     // 板子
