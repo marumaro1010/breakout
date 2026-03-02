@@ -186,7 +186,7 @@ async function start() {
   await initDatabase();
 
   app.listen(PORT, () => {
-    console.log(`🎮 排行榜 API 伺服器運行中: http://localhost:${PORT}`);
+    console.log(`🎮 排行榜 API 伺服器運行中: http://${dbConfig.host}:${PORT}`);
     console.log(`📊 API 端點:`);
     console.log(`   GET  /api/leaderboard - 取得排行榜`);
     console.log(`   POST /api/leaderboard - 新增分數`);

@@ -640,8 +640,21 @@
   resetBtn.addEventListener("click", resetAll);
 
   // ===== 龍虎排行榜功能（API 版本）=====
-  // API 伺服器網址（開發環境用 localhost，正式環境改成你的伺服器網址）
-  const API_BASE = 'http://localhost:3000/api';
+  // API 伺服器網址（自動判斷環境）
+  const API_BASE = (() => {
+    const hostname = window.location.hostname;
+
+    // 本地開發環境
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      console.log('本地開發環境，使用本地伺服器');
+      return 'http://localhost:3000/api';
+    }
+
+    // 正式環境（填入你的 Railway 網址）
+    // TODO: 部署後請將下方網址改成你的 Railway 網址
+    console.log('正式環境，使用 Railway伺服器');
+    return 'https://breakout-production-7c7b.up.railway.app/api';
+  })();
 
   // 備用：本地儲存（當 API 無法連線時使用）
   const RANK_KEY = "brickBreaker_leaderboard";
