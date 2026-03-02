@@ -767,7 +767,7 @@
     }
     rankBody.innerHTML = board.map((entry, i) => {
       const rankClass = i === 0 ? 'rank-1 dragon' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3 tiger' : '';
-      const medal = i === 0 ? '🐉' : i === 1 ? '🥈' : i === 2 ? '🐯' : `${i + 1}`;
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`;
       return `<tr>
         <td class="${rankClass}">${medal}</td>
         <td>${entry.name}</td>
