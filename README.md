@@ -5,26 +5,18 @@
 ```bash
 cd server
 cp .env.example .env
-# 編輯 .env 設定密碼
-
 docker-compose up -d
 ```
-
-| 服務 | 網址 |
-|-----|-----|
-| API | http://localhost:3000 |
-| MySQL | localhost:3307 |
-| phpMyAdmin | http://localhost:8081 |
 
 ### 2. 開啟遊戲（前端）
 
 ```bash
 # 在專案根目錄執行
 cd /game
-python3 -m http.server 5500
+python3 -m http.server (任一個port)
 ```
 
-然後開啟瀏覽器：**http://localhost:5500**
+然後開啟瀏覽器：**http://localhost:(port)**
 
 ---
 
